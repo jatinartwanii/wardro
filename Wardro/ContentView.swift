@@ -29,14 +29,14 @@ struct ContentView: View {
             if currentIndex < emojis.count {
                 ZStack {
                     // The card background
-                    RoundedRectangle(cornerRadius: 20)
+                    RoundedRectangle(cornerRadius: 10)
                         .fill(Color.white)
                         .shadow(radius: 10)
-                        .frame(width: 300, height: 400)
+                        .frame(width: 350, height: 500)
                     
                     // The emoji displayed on top of the card
                     Text(emojis[currentIndex])
-                        .font(.system(size: 100))
+                        .font(.system(size: 200))
                         .padding()
                 }
                 .gesture(
@@ -78,9 +78,9 @@ struct ContentView: View {
         }
         .padding()
         .onChange(of: currentIndex) { _ in
-            // Show the swipe message for 1.5 seconds, then hide it
+            // Show the swipe message for 0.5 seconds, then hide it
             showSwipeMessage = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 showSwipeMessage = false
             }
         }

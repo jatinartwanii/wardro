@@ -18,6 +18,13 @@ struct WishlistView: View {
                     .font(.headline)
                     .padding()
             } else {
+                // Title aligned to the left
+                HStack {
+                    Text("Wishlist")
+                        .font(.largeTitle)
+                        .padding()
+                    Spacer() // Push the title to the left
+                }
                 List {
                     ForEach(wishlist, id: \.self) { emoji in
                         Text(emoji)
@@ -26,6 +33,8 @@ struct WishlistView: View {
                     }
                     .onDelete(perform: removeFromWishlist) // Enable swipe-to-delete
                 }
+                .listStyle(PlainListStyle()) // Removes default background
+                .background(Color.white)
             }
         }
         .navigationTitle("Wishlist")

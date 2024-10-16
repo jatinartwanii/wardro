@@ -13,11 +13,18 @@ struct MainTabView: View {
     
     var body: some View {
         VStack {
+            
             // App Title at the top
             Text("Wardro.")
                 .font(.largeTitle)
                 .fontWeight(.bold)
-                .padding(.top, 20)
+                .padding(.top, 10)
+            
+            // Subtitle beneath the title
+            Text("Personalized fashion recommendations")
+                .font(.subheadline)
+                .foregroundColor(.gray)
+                .padding(.top, -20)
             
             Spacer() // Creates space between the title and the tabs
             
@@ -47,7 +54,8 @@ struct MainTabView: View {
                         Label("Profile", systemImage: "person")
                     }
             }
-            .padding(.top, -10) // Slight padding to remove space above the tab bar
+            .accentColor(.black)
+            .padding(.top, -1) // Slight padding to remove space above the tab bar
         }
     }
 }
