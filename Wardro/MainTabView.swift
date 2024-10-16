@@ -13,7 +13,6 @@ struct MainTabView: View {
     
     var body: some View {
         VStack {
-            
             // App Title at the top
             Text("Wardro.")
                 .font(.largeTitle)
