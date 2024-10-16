@@ -8,17 +8,110 @@
 import SwiftUI
 
 struct ContentView: View {
+    // The list of emojis to swipe through
+    @State private var emojis = ["😀", "🥳", "😎", "🤩", "😍", "🤖", "🐶", "🍕", "🚀"]
+    // The current index of the emoji being displayed
+    @State private var currentIndex: Int = 0
+    // The list of emojis added to the wishlist
+    @State private var wishlist: [String] = []
+    // Message to display after swipe (feedback message)
+    @State private var swipeMessage: String? = nil
+    // Controls color of the swipe message feedback
+    @State private var swipeMessageColor: Color = .green
+    // Controls if the swipe message should be visible
+    @State private var showSwipeMessage = false
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        NavigationView {
+            VStack {
+                Spacer()
+                
+                // Show the current emoji inside a card
+                if currentIndex < emojis.count {
+                    ZStack {
+                        // The card background
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Color.white)
+                            .shadow(radius: 10)
+                            .frame(width: 300, height: 400)
+                        
+                        // The emoji displayed on top of the card
+                        Text(emojis[currentIndex])
+                            .font(.system(size: 100))
+                            .padding()
+                    }
+                    .gesture(
+                        DragGesture()
+                            .onEnded { value in
+                                if value.translation.width < 0 {
+                                    // Swiped left
+                                    swipeMessage = "❌"
+                                    swipeMessageColor = .red
+                                    showNextEmoji()
+                                } else if value.translation.width > 0 {
+                                    // Swiped right, add to wishlist
+                                    wishlist.append(emojis[currentIndex])
+                                    swipeMessage = "Added to wishlist"
+                                    swipeMessageColor = .green
+                                    showNextEmoji()
+                                }
+                            }
+                    )
+                } else {
+                    // If no more emojis to swipe, show a message
+                    Text("No more emojis!")
+                        .font(.largeTitle)
+                        .padding()
+                }
+                
+                Spacer()
+                
+                // Show swipe feedback (swipeMessage)
+                if showSwipeMessage {
+                    Text(swipeMessage ?? "")
+                        .foregroundColor(swipeMessageColor)
+                        .font(.headline)
+                        .padding()
+                        .transition(.opacity)
+                }
+                
+                Spacer()
+                
+                // Button to view the wishlist
+                NavigationLink(destination: WishlistView(wishlist: $wishlist)) { // Use @Binding for passing the wishlist
+                    Text("View Wishlist")
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }
+            }
+            .navigationTitle("Wardro")
+            .padding()
+            .onChange(of: currentIndex) { _ in
+                // Show the swipe message for 1.5 seconds, then hide it
+                showSwipeMessage = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    showSwipeMessage = false
+                }
+            }
         }
-        .padding()
+    }
+    
+    // Function to move to the next emoji
+    func showNextEmoji() {
+        if currentIndex < emojis.count - 1 {
+            currentIndex += 1
+        } else {
+            currentIndex = 0 // Go back to the first emoji after the last
+        }
     }
 }
 
 #Preview {
     ContentView()
 }
+
+
+
+
