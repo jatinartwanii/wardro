@@ -14,12 +14,11 @@ struct ContentView: View {
     @State private var currentIndex: Int = 0
     // The wishlist is now passed in from MainTabView
     @Binding var wishlist: [String]
-    // Message to display after swipe (feedback message)
-    @State private var swipeMessage: String? = nil
-    // Controls color of the swipe message feedback
-    @State private var swipeMessageColor: Color = .green
-    // Controls if the swipe message should be visible
-    @State private var showSwipeMessage = false
+    
+    // State variables to show feedback for swipes
+    @State private var showCheckmark = false
+    @State private var showCross = false
+    
     // Track the drag offset for the swiping animation
     @State private var dragOffset: CGSize = .zero
     // Control opacity for smooth transition during swipe
@@ -58,10 +57,10 @@ struct ContentView: View {
                                 }
                                 .onEnded { value in
                                     if value.translation.width < -100 {
-                                        // Swiped left, remove the card with animation
+                                        // Swiped left, remove the card with animation and show red cross
                                         swipeLeft()
                                     } else if value.translation.width > 100 {
-                                        // Swiped right, add to wishlist and remove the card with animation
+                                        // Swiped right, add to wishlist and remove the card with animation and show green checkmark
                                         swipeRight()
                                     } else {
                                         // Return the card to the center if the drag was not far enough
@@ -70,6 +69,7 @@ struct ContentView: View {
                                 }
                         )
                     
+                    // Content inside the card
                     VStack {
                         // The emoji displayed on top of the card
                         Text(emojis[currentIndex])
@@ -88,35 +88,47 @@ struct ContentView: View {
                                         .font(.body)
                                         .multilineTextAlignment(.center)
                                         .padding()
-                                    
-                                    // Additional dummy content to simulate scrollable content
-                                    ForEach(1...10, id: \.self) { i in
-                                        Text("Additional dummy content line \(i)")
-                                            .padding()
-                                    }
-                                    
-                                    // Minimize button to collapse the card
-                                    Button(action: {
-                                        withAnimation {
-                                            isExpanded = false
-                                        }
-                                    }) {
-                                        Text("Minimize")
-                                            .foregroundColor(.blue)
-                                            .padding()
-                                            .background(Color.gray.opacity(0.2))
-                                            .cornerRadius(10)
-                                    }
-                                    .padding(.bottom)
                                 }
                                 .frame(maxWidth: .infinity) // Ensure the content doesn't overflow horizontally
                             }
                             .frame(maxHeight: .infinity) // Ensure scroll view fits within the card
                         }
                     }
-                    .padding() // Ensure some padding around the content
-                    .frame(maxHeight: .infinity) // Restrict content to fit within the card
+                    .padding()
+                    .frame(maxHeight: .infinity)
                     .animation(.none) // Avoid animating the inner content when expanding
+                    
+                    // Show green checkmark and text after a successful right swipe
+                    if showCheckmark {
+                        VStack {
+                            Image(systemName: "checkmark.circle.fill")
+                                .resizable()
+                                .frame(width: 100, height: 100)
+                                .foregroundColor(.green)
+                                .transition(.scale)
+                            
+                            Text("Added to wishlist")
+                                .font(.headline)
+                                .foregroundColor(.green)
+                        }
+                        .transition(.scale)
+                    }
+                    
+                    // Show red cross and text after a left swipe
+                    if showCross {
+                        VStack {
+                            Image(systemName: "xmark.circle.fill")
+                                .resizable()
+                                .frame(width: 100, height: 100)
+                                .foregroundColor(.red)
+                                .transition(.scale)
+                            
+                            Text("Oops! Sorry you didn't like that")
+                                .font(.headline)
+                                .foregroundColor(.red)
+                        }
+                        .transition(.scale)
+                    }
                 }
             } else {
                 // If no more emojis to swipe, show a message
@@ -126,55 +138,37 @@ struct ContentView: View {
             }
             
             Spacer()
-            
-            // Show swipe feedback (swipeMessage)
-            if showSwipeMessage {
-                Text(swipeMessage ?? "")
-                    .foregroundColor(swipeMessageColor)
-                    .font(.headline)
-                    .padding()
-                    .transition(.opacity)
-            }
-            
-            Spacer()
         }
         .padding()
-        .onChange(of: currentIndex) { _ in
-            // Show the swipe message for 1.5 seconds, then hide it
-            showSwipeMessage = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                showSwipeMessage = false
-            }
-        }
     }
     
-    // Function to handle swipe left (dismiss the card)
+    // Function to handle swipe left (dismiss the card and show red cross)
     func swipeLeft() {
         withAnimation {
             dragOffset = CGSize(width: -500, height: 0) // Move card off the screen to the left
             cardOpacity = 0 // Fade out the card
+            showCross = true // Show red cross
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             showNextEmoji()
             resetCardPosition()
+            showCross = false // Hide red cross after a short delay
         }
-        swipeMessage = "❌"
-        swipeMessageColor = .red
     }
     
-    // Function to handle swipe right (add to wishlist and dismiss the card)
+    // Function to handle swipe right (add to wishlist, dismiss the card, and show green checkmark)
     func swipeRight() {
         withAnimation {
             dragOffset = CGSize(width: 500, height: 0) // Move card off the screen to the right
             cardOpacity = 0 // Fade out the card
+            showCheckmark = true // Show green checkmark
         }
         wishlist.append(emojis[currentIndex])
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             showNextEmoji()
             resetCardPosition()
+            showCheckmark = false // Hide green checkmark after a short delay
         }
-        swipeMessage = "Added to wishlist"
-        swipeMessageColor = .green
     }
     
     // Function to move to the next emoji
@@ -198,6 +192,8 @@ struct ContentView: View {
 #Preview {
     ContentView(wishlist: .constant([]))
 }
+
+
 
 
 
