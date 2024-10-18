@@ -24,7 +24,9 @@ struct ContentView: View {
     @State private var dragOffset: CGSize = .zero
     // Control opacity for smooth transition during swipe
     @State private var cardOpacity: Double = 1.0
-
+    // Track whether the card is expanded or collapsed
+    @State private var isExpanded = false
+    
     var body: some View {
         VStack {
             Spacer()
@@ -36,14 +38,23 @@ struct ContentView: View {
                     RoundedRectangle(cornerRadius: 20)
                         .fill(Color.white)
                         .shadow(radius: 10)
-                        .frame(width: 300, height: 400)
+                        .frame(width: isExpanded ? 350 : 300, height: isExpanded ? 600 : 400)
                         .offset(x: dragOffset.width) // Move the card as per the drag offset
                         .rotationEffect(.degrees(Double(dragOffset.width / 20))) // Add a slight rotation effect
                         .opacity(cardOpacity) // Control opacity for smooth disappearance
+                        .animation(.spring()) // Add smooth spring animation for transitions
+                        .onTapGesture {
+                            // Toggle the expanded state on card tap
+                            withAnimation {
+                                isExpanded.toggle()
+                            }
+                        }
                         .gesture(
                             DragGesture()
                                 .onChanged { value in
-                                    dragOffset = value.translation // Track drag offset
+                                    if !isExpanded { // Only allow dragging when not expanded
+                                        dragOffset = value.translation // Track drag offset
+                                    }
                                 }
                                 .onEnded { value in
                                     if value.translation.width < -100 {
@@ -59,15 +70,54 @@ struct ContentView: View {
                                 }
                         )
                     
-                    // The emoji displayed on top of the card
-                    Text(emojis[currentIndex])
-                        .font(.system(size: 100))
-                        .padding()
-                        .offset(x: dragOffset.width) // Move the emoji with the card
-                        .rotationEffect(.degrees(Double(dragOffset.width / 20))) // Rotate the emoji with the card
-                        .opacity(cardOpacity)
+                    VStack {
+                        // The emoji displayed on top of the card
+                        Text(emojis[currentIndex])
+                            .font(.system(size: 100))
+                            .padding()
+                            .offset(x: dragOffset.width) // Move the emoji with the card
+                            .rotationEffect(.degrees(Double(dragOffset.width / 20))) // Rotate the emoji with the card
+                            .opacity(cardOpacity)
+                        
+                        if isExpanded {
+                            // Add a ScrollView when the card is expanded
+                            ScrollView {
+                                VStack {
+                                    // Dummy content displayed when the card is expanded
+                                    Text("Here is some additional information about the emoji. This is dummy text to simulate expanded content.")
+                                        .font(.body)
+                                        .multilineTextAlignment(.center)
+                                        .padding()
+                                    
+                                    // Additional dummy content to simulate scrollable content
+                                    ForEach(1...10, id: \.self) { i in
+                                        Text("Additional dummy content line \(i)")
+                                            .padding()
+                                    }
+                                    
+                                    // Minimize button to collapse the card
+                                    Button(action: {
+                                        withAnimation {
+                                            isExpanded = false
+                                        }
+                                    }) {
+                                        Text("Minimize")
+                                            .foregroundColor(.blue)
+                                            .padding()
+                                            .background(Color.gray.opacity(0.2))
+                                            .cornerRadius(10)
+                                    }
+                                    .padding(.bottom)
+                                }
+                                .frame(maxWidth: .infinity) // Ensure the content doesn't overflow horizontally
+                            }
+                            .frame(maxHeight: .infinity) // Ensure scroll view fits within the card
+                        }
+                    }
+                    .padding() // Ensure some padding around the content
+                    .frame(maxHeight: .infinity) // Restrict content to fit within the card
+                    .animation(.none) // Avoid animating the inner content when expanding
                 }
-                .animation(.spring()) // Add smooth spring animation for transitions
             } else {
                 // If no more emojis to swipe, show a message
                 Text("No more emojis!")
@@ -148,6 +198,9 @@ struct ContentView: View {
 #Preview {
     ContentView(wishlist: .constant([]))
 }
+
+
+
 
 
 
